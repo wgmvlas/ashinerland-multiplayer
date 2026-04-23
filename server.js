@@ -19,7 +19,7 @@ let rooms = [];
 /* =========================
    HELPERS
 ========================= */
-const normalize = (s) => (s || "").trim().toLowerCase();
+const normalize = (s) => (s || "").trim(); // ❗ НЕ lowerCase для host!
 
 /* =========================
    BROADCAST
@@ -38,19 +38,24 @@ function broadcast() {
 }
 
 /* =========================
-   GET ROOM
+   FIND ROOM
 ========================= */
-function getRoom(roomId) {
-    return rooms.find(r => r.id === roomId);
+function findRoom(id) {
+    return rooms.find(r => r.id === id);
 }
 
 /* =========================
-   CONNECTION
+   CONNECTIONS
 ========================= */
 wss.on("connection", (ws) => {
     console.log("Client connected");
 
-    /* ---------- MESSAGE ---------- */
+    // одразу віддати кімнати новому клієнту
+    ws.send(JSON.stringify({
+        type: "rooms_list",
+        rooms
+    }));
+
     ws.on("message", (msg) => {
         let data;
 
@@ -94,10 +99,10 @@ wss.on("connection", (ws) => {
            JOIN ROOM
         ========================= */
         if (data.type === "join_room") {
-            const room = getRoom(data.roomId);
-            const user = normalize(data.user);
-
+            const room = findRoom(data.roomId);
             if (!room) return;
+
+            const user = normalize(data.user);
 
             if (room.players.length >= room.maxPlayers) return;
 
@@ -112,30 +117,27 @@ wss.on("connection", (ws) => {
            DELETE ROOM
         ========================= */
         if (data.type === "delete_room") {
-            const roomIndex = rooms.findIndex(r => r.id === data.roomId);
+            const room = findRoom(data.roomId);
+            if (!room) return;
 
-            if (roomIndex === -1) return;
-
-            const room = rooms[roomIndex];
             const user = normalize(data.user);
 
+            // тільки host може видаляти
             if (room.host !== user) return;
 
-            rooms.splice(roomIndex, 1);
+            rooms = rooms.filter(r => r.id !== data.roomId);
+
             broadcast();
         }
     });
 
-    /* =========================
-       DISCONNECT (optional cleanup later)
-    ========================= */
     ws.on("close", () => {
         console.log("Client disconnected");
     });
 });
 
 /* =========================
-   START SERVER
+   START
 ========================= */
 const PORT = process.env.PORT || 8000;
 
