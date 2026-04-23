@@ -88,3 +88,16 @@ const PORT = process.env.PORT || 8000;
 server.listen(PORT, "0.0.0.0", () => {
     console.log("Server running on", PORT);
 });
+if (data.type === "delete_room") {
+    const roomIndex = rooms.findIndex(r => r.id === data.roomId);
+
+    if (roomIndex !== -1) {
+        const room = rooms[roomIndex];
+
+        // тільки host може видаляти
+        if (room.host === data.user) {
+            rooms.splice(roomIndex, 1);
+            broadcast();
+        }
+    }
+}
