@@ -19,28 +19,38 @@ let rooms = [];
 /* =========================
    HELPERS
 ========================= */
-const clean = (s) => (s || "").trim().toLowerCase();
+const normalize = (s) => (s || "").trim().toLowerCase();
 
 /* =========================
    BROADCAST
 ========================= */
 function broadcast() {
+    const payload = JSON.stringify({
+        type: "rooms_update",
+        rooms
+    });
+
     wss.clients.forEach(client => {
         if (client.readyState === 1) {
-            client.send(JSON.stringify({
-                type: "rooms_update",
-                rooms
-            }));
+            client.send(payload);
         }
     });
 }
 
 /* =========================
-   CONNECTIONS
+   GET ROOM
+========================= */
+function getRoom(roomId) {
+    return rooms.find(r => r.id === roomId);
+}
+
+/* =========================
+   CONNECTION
 ========================= */
 wss.on("connection", (ws) => {
     console.log("Client connected");
 
+    /* ---------- MESSAGE ---------- */
     ws.on("message", (msg) => {
         let data;
 
@@ -65,13 +75,15 @@ wss.on("connection", (ws) => {
            CREATE ROOM
         ========================= */
         if (data.type === "create_room") {
+            const user = normalize(data.user);
+
             const room = {
                 id: Date.now().toString(),
-                host: clean(data.user),
+                host: user,
                 map: data.map,
                 points: data.points,
                 maxPlayers: Number(data.players),
-                players: [clean(data.user)]
+                players: [user]
             };
 
             rooms.push(room);
@@ -82,17 +94,18 @@ wss.on("connection", (ws) => {
            JOIN ROOM
         ========================= */
         if (data.type === "join_room") {
-            const room = rooms.find(r => r.id === data.roomId);
+            const room = getRoom(data.roomId);
+            const user = normalize(data.user);
 
-            if (room && room.players.length < room.maxPlayers) {
-                const user = clean(data.user);
+            if (!room) return;
 
-                if (!room.players.includes(user)) {
-                    room.players.push(user);
-                }
+            if (room.players.length >= room.maxPlayers) return;
 
-                broadcast();
+            if (!room.players.includes(user)) {
+                room.players.push(user);
             }
+
+            broadcast();
         }
 
         /* =========================
@@ -104,19 +117,18 @@ wss.on("connection", (ws) => {
             if (roomIndex === -1) return;
 
             const room = rooms[roomIndex];
+            const user = normalize(data.user);
 
-            console.log("DELETE REQUEST:", data);
+            if (room.host !== user) return;
 
-            if (room.host === clean(data.user)) {
-                rooms.splice(roomIndex, 1);
-                console.log("ROOM DELETED");
-                broadcast();
-            } else {
-                console.log("NOT HOST - DENIED");
-            }
+            rooms.splice(roomIndex, 1);
+            broadcast();
         }
     });
 
+    /* =========================
+       DISCONNECT (optional cleanup later)
+    ========================= */
     ws.on("close", () => {
         console.log("Client disconnected");
     });
