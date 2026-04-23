@@ -17,6 +17,11 @@ const wss = new WebSocketServer({ server });
 let rooms = [];
 
 /* =========================
+   HELPERS
+========================= */
+const clean = (s) => (s || "").trim().toLowerCase();
+
+/* =========================
    BROADCAST
 ========================= */
 function broadcast() {
@@ -62,11 +67,11 @@ wss.on("connection", (ws) => {
         if (data.type === "create_room") {
             const room = {
                 id: Date.now().toString(),
-                host: data.user,
+                host: clean(data.user),
                 map: data.map,
                 points: data.points,
                 maxPlayers: Number(data.players),
-                players: [data.user]
+                players: [clean(data.user)]
             };
 
             rooms.push(room);
@@ -80,27 +85,34 @@ wss.on("connection", (ws) => {
             const room = rooms.find(r => r.id === data.roomId);
 
             if (room && room.players.length < room.maxPlayers) {
-                if (!room.players.includes(data.user)) {
-                    room.players.push(data.user);
+                const user = clean(data.user);
+
+                if (!room.players.includes(user)) {
+                    room.players.push(user);
                 }
+
                 broadcast();
             }
         }
 
         /* =========================
-           DELETE ROOM (FIXED)
+           DELETE ROOM
         ========================= */
         if (data.type === "delete_room") {
             const roomIndex = rooms.findIndex(r => r.id === data.roomId);
 
-            if (roomIndex !== -1) {
-                const room = rooms[roomIndex];
+            if (roomIndex === -1) return;
 
-                // тільки host може видаляти
-                if (room.host === data.user) {
-                    rooms.splice(roomIndex, 1);
-                    broadcast();
-                }
+            const room = rooms[roomIndex];
+
+            console.log("DELETE REQUEST:", data);
+
+            if (room.host === clean(data.user)) {
+                rooms.splice(roomIndex, 1);
+                console.log("ROOM DELETED");
+                broadcast();
+            } else {
+                console.log("NOT HOST - DENIED");
             }
         }
     });
