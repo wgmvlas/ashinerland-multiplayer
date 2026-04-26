@@ -67,21 +67,28 @@ wss.on("connection", (ws) => {
  /* =========================
        START GAME
     ========================= */
-    if (data.type === "start_game") {
+   if (data.type === "start_game") {
 
-        console.log("START REQUEST:", data); // 👈 ВСТАВЛЯЄШ СЮДИ
+    console.log("START REQUEST:", data);
 
-        const room = findRoom(data.roomId);
-        if (!room) return;
+    const room = findRoom(data.roomId);
+    if (!room) return;
 
-        const user = normalize(data.user);
+    const user = normalize(data.user);
 
-        if (room.host !== user) return;
+    console.log("HOST:", room.host, "USER:", user);
 
-        room.status = "in_game";
-
-        broadcast();
+    if (normalize(room.host) !== user) {
+        console.log("NOT HOST → BLOCKED");
+        return;
     }
+
+    room.status = "in_game";
+
+    console.log("GAME STARTED:", room.id);
+
+    broadcast();
+}
         /* GET ROOMS */
         if (data.type === "get_rooms") {
             ws.send(JSON.stringify({
