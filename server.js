@@ -65,7 +65,22 @@ wss.on("connection", (ws) => {
             console.log("Bad JSON");
             return;
         }
+/* =========================
+   START GAME
+========================= */
+if (data.type === "start_game") {
+    const room = findRoom(data.roomId);
+    if (!room) return;
 
+    const user = normalize(data.user);
+
+    // тільки хост
+    if (room.host !== user) return;
+
+    room.status = "in_game";
+
+    broadcast();
+}
         /* =========================
            GET ROOMS
         ========================= */
@@ -88,6 +103,7 @@ wss.on("connection", (ws) => {
                 map: data.map,
                 points: data.points,
                 maxPlayers: Number(data.players),
+                status: "lobby",
 
                 // 🔥 ВАЖЛИВО: object, не string
                 players: [
@@ -146,19 +162,7 @@ wss.on("connection", (ws) => {
         console.log("Client disconnected");
     });
 });
-if (data.type === "start_game") {
-    const room = findRoom(data.roomId);
-    if (!room) return;
 
-    const user = normalize(data.user);
-
-    // тільки хост може стартувати
-    if (room.host !== user) return;
-
-    room.status = "in_game";
-
-    broadcast();
-}
 /* =========================
    START SERVER
 ========================= */
