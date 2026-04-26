@@ -26,7 +26,7 @@ const normalize = (s) => (s || "").trim();
 ========================= */
 function broadcast() {
     const payload = JSON.stringify({
-        type: "rooms_update",
+        type: "rooms_list",   // 👈 ВАЖЛИВО: УНІФІКУЄМО
         rooms
     });
 
