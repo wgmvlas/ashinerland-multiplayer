@@ -64,7 +64,24 @@ wss.on("connection", (ws) => {
             console.log("Bad JSON");
             return;
         }
+ /* =========================
+       START GAME
+    ========================= */
+    if (data.type === "start_game") {
 
+        console.log("START REQUEST:", data); // 👈 ВСТАВЛЯЄШ СЮДИ
+
+        const room = findRoom(data.roomId);
+        if (!room) return;
+
+        const user = normalize(data.user);
+
+        if (room.host !== user) return;
+
+        room.status = "in_game";
+
+        broadcast();
+    }
         /* GET ROOMS */
         if (data.type === "get_rooms") {
             ws.send(JSON.stringify({
