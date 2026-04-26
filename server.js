@@ -56,107 +56,106 @@ wss.on("connection", (ws) => {
         rooms
     }));
 
-    ws.on("message", (msg) => {
-        let data;
+   ws.on("message", (msg) => {
+    let data;
 
-        try {
-            data = JSON.parse(msg);
-        } catch (e) {
-            console.log("Bad JSON");
-            return;
-        }
-/* =========================
-   START GAME
-========================= */
-if (data.type === "start_game") {
-    const room = findRoom(data.roomId);
-    if (!room) return;
+    try {
+        data = JSON.parse(msg);
+    } catch (e) {
+        console.log("Bad JSON");
+        return;
+    }
 
-    const user = normalize(data.user);
+    /* =========================
+       GET ROOMS
+    ========================= */
+    if (data.type === "get_rooms") {
+        ws.send(JSON.stringify({
+            type: "rooms_list",
+            rooms
+        }));
+    }
 
-    // тільки хост
-    if (room.host !== user) return;
+    /* =========================
+       CREATE ROOM
+    ========================= */
+    if (data.type === "create_room") {
+        const user = normalize(data.user);
 
-    room.status = "in_game";
-
-    broadcast();
-}
-        /* =========================
-           GET ROOMS
-        ========================= */
-        if (data.type === "get_rooms") {
-            ws.send(JSON.stringify({
-                type: "rooms_list",
-                rooms
-            }));
-        }
-
-        /* =========================
-           CREATE ROOM
-        ========================= */
-        if (data.type === "create_room") {
-            const user = normalize(data.user);
-
-            const room = {
-                id: Date.now().toString(),
-                host: user,
-                map: data.map,
-                points: data.points,
-                maxPlayers: Number(data.players),
-                status: "lobby",
-
-                // 🔥 ВАЖЛИВО: object, не string
-                players: [
-                    {
-                        name: user,
-                        lineage: data.lineage
-                    }
-                ]
-            };
-
-            rooms.push(room);
-            broadcast();
-        }
-
-        /* =========================
-           JOIN ROOM
-        ========================= */
-        if (data.type === "join_room") {
-            const room = findRoom(data.roomId);
-            if (!room) return;
-
-            const user = normalize(data.user);
-
-            if (room.players.length >= room.maxPlayers) return;
-
-            const exists = room.players.find(p => p.name === user);
-
-            if (!exists) {
-                room.players.push({
+        const room = {
+            id: Date.now().toString(),
+            host: user,
+            map: data.map,
+            points: data.points,
+            maxPlayers: Number(data.players),
+            status: "lobby",
+            players: [
+                {
                     name: user,
                     lineage: data.lineage
-                });
-            }
+                }
+            ]
+        };
 
-            broadcast();
+        rooms.push(room);
+        broadcast();
+    }
+
+    /* =========================
+       JOIN ROOM
+    ========================= */
+    if (data.type === "join_room") {
+        const room = findRoom(data.roomId);
+        if (!room) return;
+
+        const user = normalize(data.user);
+
+        if (room.players.length >= room.maxPlayers) return;
+
+        const exists = room.players.find(p => p.name === user);
+
+        if (!exists) {
+            room.players.push({
+                name: user,
+                lineage: data.lineage
+            });
         }
 
-        /* =========================
-           DELETE ROOM
-        ========================= */
-        if (data.type === "delete_room") {
-            const room = findRoom(data.roomId);
-            if (!room) return;
+        broadcast();
+    }
 
-            const user = normalize(data.user);
+    /* =========================
+       START GAME
+    ========================= */
+    if (data.type === "start_game") {
+        const room = findRoom(data.roomId);
+        if (!room) return;
 
-            if (room.host !== user) return;
+        const user = normalize(data.user);
 
-            rooms = rooms.filter(r => r.id !== data.roomId);
+        if (room.host !== user) return;
 
-            broadcast();
-        }
-    });
+        room.status = "in_game";
+
+        broadcast();
+    }
+
+    /* =========================
+       DELETE ROOM
+    ========================= */
+    if (data.type === "delete_room") {
+        const room = findRoom(data.roomId);
+        if (!room) return;
+
+        const user = normalize(data.user);
+
+        if (room.host !== user) return;
+
+        rooms = rooms.filter(r => r.id !== data.roomId);
+
+        broadcast();
+    }
+});
 
     ws.on("close", () => {
         console.log("Client disconnected");
