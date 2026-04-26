@@ -125,23 +125,18 @@ if (data.type === "leave_room") {
 
     const user = normalize(data.user);
 
+    // якщо host виходить → видалити кімнату
+    if (room.host === user) {
+        rooms = rooms.filter(r => r.id !== data.roomId);
+        broadcast();
+        return;
+    }
+
+    // інакше просто видаляємо гравця
     room.players = room.players.filter(p => p.name !== user);
 
     broadcast();
 }
-        /* START GAME */
-        if (data.type === "start_game") {
-            const room = findRoom(data.roomId);
-            if (!room) return;
-
-            const user = normalize(data.user);
-
-            if (room.host !== user) return;
-
-            room.status = "in_game";
-
-            broadcast();
-        }
 
         /* DELETE ROOM */
         if (data.type === "delete_room") {
