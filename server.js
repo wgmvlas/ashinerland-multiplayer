@@ -112,7 +112,7 @@ wss.on("connection", (ws) => {
                 room.players.push({
                     name: user,
                     lineage: data.lineage,
-                    image: data.image
+                    image: data.image || "default.jpg"
                 });
             }
 
