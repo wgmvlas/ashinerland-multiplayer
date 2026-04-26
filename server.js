@@ -118,7 +118,17 @@ wss.on("connection", (ws) => {
 
             broadcast();
         }
+        /* LEAV ROOM */
+if (data.type === "leave_room") {
+    const room = findRoom(data.roomId);
+    if (!room) return;
 
+    const user = normalize(data.user);
+
+    room.players = room.players.filter(p => p.name !== user);
+
+    broadcast();
+}
         /* START GAME */
         if (data.type === "start_game") {
             const room = findRoom(data.roomId);
