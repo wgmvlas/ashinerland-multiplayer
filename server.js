@@ -146,7 +146,19 @@ wss.on("connection", (ws) => {
         console.log("Client disconnected");
     });
 });
+if (data.type === "start_game") {
+    const room = findRoom(data.roomId);
+    if (!room) return;
 
+    const user = normalize(data.user);
+
+    // тільки хост може стартувати
+    if (room.host !== user) return;
+
+    room.status = "in_game";
+
+    broadcast();
+}
 /* =========================
    START SERVER
 ========================= */
