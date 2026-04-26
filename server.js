@@ -19,7 +19,7 @@ let rooms = [];
 /* =========================
    HELPERS
 ========================= */
-const normalize = (s) => (s || "").trim(); // ❗ НЕ lowerCase для host!
+const normalize = (s) => (s || "").trim();
 
 /* =========================
    BROADCAST
@@ -50,7 +50,7 @@ function findRoom(id) {
 wss.on("connection", (ws) => {
     console.log("Client connected");
 
-    // одразу віддати кімнати новому клієнту
+    // одразу віддати кімнати
     ws.send(JSON.stringify({
         type: "rooms_list",
         rooms
@@ -88,7 +88,14 @@ wss.on("connection", (ws) => {
                 map: data.map,
                 points: data.points,
                 maxPlayers: Number(data.players),
-                players: [user]
+
+                // 🔥 ВАЖЛИВО: object, не string
+                players: [
+                    {
+                        name: user,
+                        lineage: data.lineage
+                    }
+                ]
             };
 
             rooms.push(room);
@@ -106,8 +113,13 @@ wss.on("connection", (ws) => {
 
             if (room.players.length >= room.maxPlayers) return;
 
-            if (!room.players.includes(user)) {
-                room.players.push(user);
+            const exists = room.players.find(p => p.name === user);
+
+            if (!exists) {
+                room.players.push({
+                    name: user,
+                    lineage: data.lineage
+                });
             }
 
             broadcast();
@@ -122,7 +134,6 @@ wss.on("connection", (ws) => {
 
             const user = normalize(data.user);
 
-            // тільки host може видаляти
             if (room.host !== user) return;
 
             rooms = rooms.filter(r => r.id !== data.roomId);
@@ -137,7 +148,7 @@ wss.on("connection", (ws) => {
 });
 
 /* =========================
-   START
+   START SERVER
 ========================= */
 const PORT = process.env.PORT || 8000;
 
