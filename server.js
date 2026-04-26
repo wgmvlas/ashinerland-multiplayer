@@ -87,7 +87,8 @@ wss.on("connection", (ws) => {
                 players: [
                     {
                         name: user,
-                        lineage: data.lineage
+                        lineage: data.lineage,
+                        image: data.image
                     }
                 ]
             };
@@ -110,7 +111,8 @@ wss.on("connection", (ws) => {
             if (!exists) {
                 room.players.push({
                     name: user,
-                    lineage: data.lineage
+                    lineage: data.lineage,
+                    image: data.image
                 });
             }
 
