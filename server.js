@@ -25,6 +25,7 @@ const normalize = (s) => (s || "").trim();
    BROADCAST
 ========================= */
 function broadcast() {
+   console.log("ROOMS:", rooms);
     const payload = JSON.stringify({
         type: "rooms_list",   // 👈 ВАЖЛИВО: УНІФІКУЄМО
         rooms
