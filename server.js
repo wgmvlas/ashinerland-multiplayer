@@ -74,17 +74,16 @@ wss.on("connection", (ws) => {
     ========================= */
    if (data.type === "start_game") {
 
-    console.log("START REQUEST:", data);
-
     const room = findRoom(data.roomId);
     if (!room) return;
 
     const user = normalize(data.user);
+    const host = normalize(room.host);
 
-    console.log("HOST:", room.host, "USER:", user);
+    if (room.status !== "lobby") return;
 
-    if (normalize(room.host) !== user) {
-        console.log("NOT HOST → BLOCKED");
+    if (host !== user) {
+        console.log("NOT HOST");
         return;
     }
 
