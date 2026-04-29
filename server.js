@@ -2,10 +2,6 @@ import http from "http";
 import { WebSocketServer } from "ws";
 
 /* =========================
-   HELPERS
-========================= */
-const normalize = (s) => (s || "").trim().toLowerCase();
-/* =========================
    HTTP (Render requirement)
 ========================= */
 const server = http.createServer((req, res) => {
@@ -29,7 +25,6 @@ const normalize = (s) => (s || "").trim();
    BROADCAST
 ========================= */
 function broadcast() {
-   console.log("ROOMS:", rooms);
     const payload = JSON.stringify({
         type: "rooms_list",   // 👈 ВАЖЛИВО: УНІФІКУЄМО
         rooms
@@ -74,16 +69,17 @@ wss.on("connection", (ws) => {
     ========================= */
    if (data.type === "start_game") {
 
+    console.log("START REQUEST:", data);
+
     const room = findRoom(data.roomId);
     if (!room) return;
 
     const user = normalize(data.user);
-    const host = normalize(room.host);
 
-    if (room.status !== "lobby") return;
+    console.log("HOST:", room.host, "USER:", user);
 
-    if (host !== user) {
-        console.log("NOT HOST");
+    if (normalize(room.host) !== user) {
+        console.log("NOT HOST → BLOCKED");
         return;
     }
 
@@ -103,38 +99,27 @@ wss.on("connection", (ws) => {
 
         /* CREATE ROOM */
         if (data.type === "create_room") {
+            const user = normalize(data.user);
 
-    const user = normalize(data.user);
+            const room = {
+                id: Date.now().toString(),
+                host: user,
+                map: data.map,
+                points: data.points,
+                maxPlayers: Number(data.players),
+                status: "lobby",
+                players: [
+                    {
+                        name: user,
+                        lineage: data.lineage,
+                        image: data.image
+                    }
+                ]
+            };
 
-    // ❌ перевірка: чи вже в кімнаті
-    const alreadyInRoom = rooms.some(r =>
-        r.players.some(p => normalize(p.name) === user)
-    );
-
-    if (alreadyInRoom) {
-        console.log("BLOCKED: user already in room", user);
-        return;
-    }
-
-    const room = {
-        id: Date.now().toString(),
-        host: user,
-        map: data.map,
-        points: data.points,
-        maxPlayers: Number(data.players),
-        status: "lobby",
-        players: [
-            {
-                name: user,
-                lineage: data.lineage,
-                image: data.image
-            }
-        ]
-    };
-
-    rooms.push(room);
-    broadcast();
-}
+            rooms.push(room);
+            broadcast();
+        }
 
         /* JOIN ROOM */
         if (data.type === "join_room") {
