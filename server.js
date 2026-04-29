@@ -56,6 +56,20 @@ wss.on("connection", (ws) => {
     }));
 
     ws.on("message", (msg) => {
+    let data = JSON.parse(msg);
+
+    if (data.type === "start_game") { ... }
+
+    // ❌ surrender у тебе ВИНЕСЕНИЙ НАЗОВНІ
+});
+
+if (data.type === "surrender") { ❌ НЕ ІСНУЄ data тут
+}
+✅ ПРАВИЛЬНО (FIX)
+
+👉 ВСТАВ ЦЕ В СЕРВЕР всередину ws.on("message")
+
+ws.on("message", (msg) => {
 
     let data;
     try {
@@ -122,31 +136,6 @@ wss.on("connection", (ws) => {
     }
 
 });
- /* =========================
-       START GAME
-    ========================= */
-   if (data.type === "start_game") {
-
-    console.log("START REQUEST:", data);
-
-    const room = findRoom(data.roomId);
-    if (!room) return;
-
-    const user = normalize(data.user);
-
-    console.log("HOST:", room.host, "USER:", user);
-
-    if (normalize(room.host) !== user) {
-        console.log("NOT HOST → BLOCKED");
-        return;
-    }
-
-    room.status = "in_game";
-
-    console.log("GAME STARTED:", room.id);
-
-    broadcast();
-}
         /* GET ROOMS */
         if (data.type === "get_rooms") {
             ws.send(JSON.stringify({
@@ -240,46 +229,6 @@ if (data.type === "leave_room") {
         console.log("Client disconnected");
     });
 });
-/* SURRENDER */
-if (data.type === "surrender") {
-
-    const room = findRoom(data.roomId);
-    if (!room) return;
-
-    const user = normalize(data.user);
-
-    // помічаємо як "dead"
-    room.players = room.players.filter(p =>
-        normalize(p.name) !== user
-    );
-
-    console.log(user, "surrendered");
-
-    // якщо залишився 1 гравець → перемога
-    if (room.players.length === 1) {
-
-        const winner = room.players[0];
-
-        room.status = "finished";
-
-        broadcast();
-
-        // окремий message (можеш використати або popup)
-        wss.clients.forEach(client => {
-            if (client.readyState === 1) {
-                client.send(JSON.stringify({
-                    type: "game_win",
-                    user: winner.name,
-                    roomId: room.id
-                }));
-            }
-        });
-
-        return;
-    }
-
-    broadcast();
-}
 /* =========================
    START SERVER
 ========================= */
