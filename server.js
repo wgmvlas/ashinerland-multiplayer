@@ -182,7 +182,46 @@ if (data.type === "leave_room") {
         console.log("Client disconnected");
     });
 });
+/* SURRENDER */
+if (data.type === "surrender") {
 
+    const room = findRoom(data.roomId);
+    if (!room) return;
+
+    const user = normalize(data.user);
+
+    // помічаємо як "dead"
+    room.players = room.players.filter(p =>
+        normalize(p.name) !== user
+    );
+
+    console.log(user, "surrendered");
+
+    // якщо залишився 1 гравець → перемога
+    if (room.players.length === 1) {
+
+        const winner = room.players[0];
+
+        room.status = "finished";
+
+        broadcast();
+
+        // окремий message (можеш використати або popup)
+        wss.clients.forEach(client => {
+            if (client.readyState === 1) {
+                client.send(JSON.stringify({
+                    type: "game_win",
+                    user: winner.name,
+                    roomId: room.id
+                }));
+            }
+        });
+
+        return;
+    }
+
+    broadcast();
+}
 /* =========================
    START SERVER
 ========================= */
