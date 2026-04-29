@@ -99,27 +99,38 @@ wss.on("connection", (ws) => {
 
         /* CREATE ROOM */
         if (data.type === "create_room") {
-            const user = normalize(data.user);
 
-            const room = {
-                id: Date.now().toString(),
-                host: user,
-                map: data.map,
-                points: data.points,
-                maxPlayers: Number(data.players),
-                status: "lobby",
-                players: [
-                    {
-                        name: user,
-                        lineage: data.lineage,
-                        image: data.image
-                    }
-                ]
-            };
+    const user = normalize(data.user);
 
-            rooms.push(room);
-            broadcast();
-        }
+    // ❌ перевірка: чи вже в кімнаті
+    const alreadyInRoom = rooms.some(r =>
+        r.players.some(p => normalize(p.name) === user)
+    );
+
+    if (alreadyInRoom) {
+        console.log("BLOCKED: user already in room", user);
+        return;
+    }
+
+    const room = {
+        id: Date.now().toString(),
+        host: user,
+        map: data.map,
+        points: data.points,
+        maxPlayers: Number(data.players),
+        status: "lobby",
+        players: [
+            {
+                name: user,
+                lineage: data.lineage,
+                image: data.image
+            }
+        ]
+    };
+
+    rooms.push(room);
+    broadcast();
+}
 
         /* JOIN ROOM */
         if (data.type === "join_room") {
