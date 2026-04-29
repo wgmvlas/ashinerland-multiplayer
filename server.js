@@ -130,12 +130,10 @@ wss.on("connection", (ws) => {
     let data = JSON.parse(msg);
 
     if (data.type === "start_game") { ... }
-
-    // ❌ surrender у тебе ВИНЕСЕНИЙ НАЗОВНІ
 });
 
-if (data.type === "surrender") { ❌ НЕ ІСНУЄ data тут
-}
+if (data.type === "surrender") {
+    console.log("SURRENDER RECEIVED:", data);
 ✅ ПРАВИЛЬНО (FIX)
 
 👉 ВСТАВ ЦЕ В СЕРВЕР всередину ws.on("message")
