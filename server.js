@@ -2,6 +2,10 @@ import http from "http";
 import { WebSocketServer } from "ws";
 
 /* =========================
+   HELPERS
+========================= */
+const normalize = (s) => (s || "").trim().toLowerCase();
+/* =========================
    HTTP (Render requirement)
 ========================= */
 const server = http.createServer((req, res) => {
