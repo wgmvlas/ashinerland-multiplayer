@@ -56,14 +56,72 @@ wss.on("connection", (ws) => {
     }));
 
     ws.on("message", (msg) => {
-        let data;
 
-        try {
-            data = JSON.parse(msg);
-        } catch (e) {
-            console.log("Bad JSON");
+    let data;
+    try {
+        data = JSON.parse(msg);
+    } catch {
+        return;
+    }
+
+    /* =========================
+       START GAME
+    ========================= */
+    if (data.type === "start_game") {
+        const room = findRoom(data.roomId);
+        if (!room) return;
+
+        const user = normalize(data.user);
+
+        if (normalize(room.host) !== user) return;
+
+        room.status = "in_game";
+        broadcast();
+    }
+
+    /* =========================
+       SURRENDER (✔ FIXED)
+    ========================= */
+    if (data.type === "surrender") {
+
+        const room = findRoom(data.roomId);
+        if (!room) return;
+
+        const user = normalize(data.user);
+
+        // видаляємо гравця
+        room.players = room.players.filter(p =>
+            normalize(p.name) !== user
+        );
+
+        console.log(user, "surrendered");
+
+        // 🏆 якщо залишився 1 гравець
+        if (room.players.length === 1) {
+
+            const winner = room.players[0];
+
+            room.status = "finished";
+
+            broadcast();
+
+            wss.clients.forEach(client => {
+                if (client.readyState === 1) {
+                    client.send(JSON.stringify({
+                        type: "game_win",
+                        user: winner.name,
+                        roomId: room.id
+                    }));
+                }
+            });
+
             return;
         }
+
+        broadcast();
+    }
+
+});
  /* =========================
        START GAME
     ========================= */
