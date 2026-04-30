@@ -78,26 +78,22 @@ wss.on("connection", (ws) => {
         /* =========================
            CREATE ROOM
         ========================= */
-        if (data.type === "create_room") {
-            const user = normalize(data.user);
-
-            const room = {
-                id: Date.now().toString(),
-                host: user,
-                map: data.map,
-                points: data.points,
-                maxPlayers: Number(data.players),
-                status: "lobby",
-                players: [{
-                    name: user,
-                    lineage: data.lineage,
-                    image: data.image
-                }]
-            };
-
-            rooms.push(room);
-            broadcast();
+        iconst room = {
+    id: Date.now().toString(),
+    host: user,
+    map: data.map,
+    points: data.points,
+    maxPlayers: Number(data.players),
+    status: "lobby",
+    createdAt: Date.now(),   // 👈 ОЦЕ ДОДАЄШ
+    players: [
+        {
+            name: user,
+            lineage: data.lineage,
+            image: data.image
         }
+    ]
+};
 
         /* =========================
            JOIN ROOM
