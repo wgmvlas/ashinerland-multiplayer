@@ -112,7 +112,8 @@ wss.on("connection", (ws) => {
 
             const user = normalize(data.user);
 
-            if (room.players.length >= room.maxPlayers) return;
+           const max = Number(room.maxPlayers || 0);
+if (room.players.length >= max) return;
 
             const exists = room.players.find(p => p.name === user);
 
