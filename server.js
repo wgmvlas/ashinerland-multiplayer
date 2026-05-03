@@ -106,14 +106,9 @@ if (data.type === "set_team") {
         /* =========================
            CREATE ROOM
         ========================= */
-       if (data.type === "create_room") {
+      if (data.type === "create_room") {
 
     const user = normalize(data.user);
-
-    const max = Number(room.maxPlayers || 0);
-    if (isNaN(maxPlayers) || maxPlayers < 1) {
-        maxPlayers = 2;
-    }
 
     const room = {
         id: Date.now().toString(),
