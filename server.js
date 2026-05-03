@@ -106,32 +106,38 @@ if (data.type === "set_team") {
         /* =========================
            CREATE ROOM
         ========================= */
-        if (data.type === "create_room") {
+       if (data.type === "create_room") {
+    console.log("CREATE ROOM:", data);
 
     const user = normalize(data.user);
+    const maxPlayers = Number(data.players);
+
+    if (!user) return;
+    if (!maxPlayers || isNaN(maxPlayers)) {
+        console.log("INVALID maxPlayers");
+        return;
+    }
 
     const room = {
         id: Date.now().toString(),
         host: user,
         map: data.map,
         points: data.points,
-        maxPlayers: Number(data.players),
+        maxPlayers,
         status: "lobby",
         createdAt: Date.now(),
-        players: [
-    {
-        name: user,
-        lineage: data.lineage,
-        image: data.image || "default.jpg",
-       team: null
-        
-    }
-]
+        players: [{
+            name: user,
+            lineage: data.lineage,
+            image: data.image || "default.jpg",
+            team: null
+        }]
     };
 
     rooms.push(room);
 
-    // 🔥 ВАЖЛИВО: відправити кімнату назад тільки створювачу
+    console.log("ROOM CREATED:", room);
+
     ws.send(JSON.stringify({
         type: "room_created",
         roomId: room.id
@@ -139,7 +145,6 @@ if (data.type === "set_team") {
 
     broadcast();
 }
-
         /* =========================
            JOIN ROOM
         ========================= */
