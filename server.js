@@ -143,26 +143,28 @@ if (data.type === "set_team") {
         /* =========================
            JOIN ROOM
         ========================= */
-        if (data.type === "join_room") {
+      if (data.type === "join_room") {
     const room = findRoom(data.roomId);
     if (!room) return;
 
     const user = normalize(data.user);
 
-    const max = Number(room.maxPlayers || 999);
+    const max = Number(room.maxPlayers);
+    if (!max) return;
+
     if (room.players.length >= max) return;
 
     const exists = room.players.some(p =>
-    normalize(p.name) === user
-);
+        normalize(p.name) === user
+    );
 
     if (!exists) {
         room.players.push({
-    name: user,
-    lineage: data.lineage,
-    image: data.image || "default.jpg",
-    team: null   // 🔥 ОБОВʼЯЗКОВО
-});
+            name: user,
+            lineage: data.lineage,
+            image: data.image || "default.jpg",
+            team: null
+        });
     }
 
     broadcast();
