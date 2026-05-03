@@ -148,7 +148,7 @@ if (data.type === "set_team") {
 
             const user = normalize(data.user);
 
-           const max = Number(room.maxPlayers || 0);
+           const max = Number(room.maxPlayers || 999);
 if (room.players.length >= max) return;
 
             const exists = room.players.find(p =>
@@ -181,7 +181,9 @@ if (room.players.length >= max) return;
                 return;
             }
 
-            room.players = room.players.filter(p => p.name !== user);
+            room.players = room.players.filter(p =>
+    normalize(p.name) !== user
+);
             broadcast();
         }
 
