@@ -64,7 +64,25 @@ wss.on("connection", (ws) => {
         } catch {
             return;
         }
+        /* =========================
+           SET TEAM
+        ========================= */
+if (data.type === "set_team") {
+    const room = findRoom(data.roomId);
+    if (!room) return;
 
+    const user = normalize(data.user);
+
+    const player = room.players.find(p =>
+        normalize(p.name) === user
+    );
+
+    if (!player) return;
+
+    player.team = data.team; // 1 / 2 / 3 / null
+
+    broadcast();
+}
         /* =========================
            GET ROOMS
         ========================= */
@@ -95,6 +113,7 @@ wss.on("connection", (ws) => {
                 name: user,
                 lineage: data.lineage,
                 image: data.image
+               team: null
             }
         ]
     };
