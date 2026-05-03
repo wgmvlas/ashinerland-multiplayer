@@ -143,28 +143,29 @@ if (data.type === "set_team") {
            JOIN ROOM
         ========================= */
         if (data.type === "join_room") {
-            const room = findRoom(data.roomId);
-            if (!room) return;
+    const room = findRoom(data.roomId);
+    if (!room) return;
 
-            const user = normalize(data.user);
+    const user = normalize(data.user);
 
-           const max = Number(room.maxPlayers || 999);
-if (room.players.length >= max) return;
+    const max = Number(room.maxPlayers || 999);
+    if (room.players.length >= max) return;
 
-            const exists = room.players.find(p =>
-    normalize(p.name) === user
-);
+    const exists = room.players.find(p =>
+        normalize(p.name) === user
+    );
 
-            if (!exists) {
-                room.players.push({
-                    name: user,
-                    lineage: data.lineage,
-                    image: data.image || "default.jpg"
-                });
-            }
+    if (!exists) {
+        room.players.push({
+            name: user,
+            lineage: data.lineage,
+            image: data.image || "default.jpg",
+            team: null
+        });
+    }
 
-            broadcast();
-        }
+    broadcast();
+}
 
         /* =========================
            LEAVE ROOM
