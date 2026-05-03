@@ -107,15 +107,12 @@ if (data.type === "set_team") {
            CREATE ROOM
         ========================= */
        if (data.type === "create_room") {
-    console.log("CREATE ROOM:", data);
 
     const user = normalize(data.user);
-    const maxPlayers = Number(data.players);
 
-    if (!user) return;
-    if (!maxPlayers || isNaN(maxPlayers)) {
-        console.log("INVALID maxPlayers");
-        return;
+    let maxPlayers = parseInt(data.players, 6);
+    if (isNaN(maxPlayers) || maxPlayers < 1) {
+        maxPlayers = 2;
     }
 
     const room = {
@@ -135,8 +132,6 @@ if (data.type === "set_team") {
     };
 
     rooms.push(room);
-
-    console.log("ROOM CREATED:", room);
 
     ws.send(JSON.stringify({
         type: "room_created",
