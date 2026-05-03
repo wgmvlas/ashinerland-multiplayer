@@ -122,7 +122,7 @@ if (data.type === "set_team") {
             {
                 name: user,
                 lineage: data.lineage,
-                image: data.image
+                image: data.image,
                team: null
             }
         ]
