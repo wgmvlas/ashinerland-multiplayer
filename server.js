@@ -151,9 +151,9 @@ if (data.type === "set_team") {
     const max = Number(room.maxPlayers || 999);
     if (room.players.length >= max) return;
 
-    const exists = room.players.find(p =>
-        normalize(p.name) === user
-    );
+    const exists = room.players.some(p =>
+    normalize(p.name) === user
+);
 
     if (!exists) {
         room.players.push({
