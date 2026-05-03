@@ -78,30 +78,37 @@ wss.on("connection", (ws) => {
         /* =========================
            CREATE ROOM
         ========================= */
-         if (data.type === "create_room") {
+        if (data.type === "create_room") {
 
-        const user = normalize(data.user);
+    const user = normalize(data.user);
 
-        const room = {
-            id: Date.now().toString(),
-            host: user,
-            map: data.map,
-            points: data.points,
-            maxPlayers: Number(data.players),
-            status: "lobby",
-            createdAt: Date.now(),
-            players: [
-                {
-                    name: user,
-                    lineage: data.lineage,
-                    image: data.image
-                }
-            ]
-        };
+    const room = {
+        id: Date.now().toString(),
+        host: user,
+        map: data.map,
+        points: data.points,
+        maxPlayers: Number(data.players),
+        status: "lobby",
+        createdAt: Date.now(),
+        players: [
+            {
+                name: user,
+                lineage: data.lineage,
+                image: data.image
+            }
+        ]
+    };
 
-        rooms.push(room);
-        broadcast();
-    }
+    rooms.push(room);
+
+    // 🔥 ВАЖЛИВО: відправити кімнату назад тільки створювачу
+    ws.send(JSON.stringify({
+        type: "room_created",
+        roomId: room.id
+    }));
+
+    broadcast();
+}
 
         /* =========================
            JOIN ROOM
