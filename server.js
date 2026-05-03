@@ -71,15 +71,25 @@ if (data.type === "set_team") {
     const room = findRoom(data.roomId);
     if (!room) return;
 
-    const user = normalize(data.user);
+    const actor = normalize(data.user);     // хто натиснув
+    const target = normalize(data.target);   // кого змінюємо
 
-    const player = room.players.find(p =>
-        normalize(p.name) === user
+    const actorPlayer = room.players.find(p =>
+        normalize(p.name) === actor
     );
 
-    if (!player) return;
+    if (!actorPlayer) return;
 
-    player.team = data.team; // 1 / 2 / 3 / null
+    const targetPlayer = room.players.find(p =>
+        normalize(p.name) === target
+    );
+
+    if (!targetPlayer) return;
+
+    // 🔥 дозволяємо змінювати ТІЛЬКИ СВОЮ команду
+    if (actor !== target) return;
+
+    targetPlayer.team = data.team;
 
     broadcast();
 }
