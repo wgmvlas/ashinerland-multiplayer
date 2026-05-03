@@ -110,7 +110,7 @@ if (data.type === "set_team") {
 
     const user = normalize(data.user);
 
-    let maxPlayers = parseInt(data.players, 6);
+    const max = Number(room.maxPlayers || 0);
     if (isNaN(maxPlayers) || maxPlayers < 1) {
         maxPlayers = 2;
     }
