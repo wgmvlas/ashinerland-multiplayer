@@ -122,8 +122,8 @@ if (data.type === "set_team") {
     {
         name: user,
         lineage: data.lineage,
-       team: null,
-        image: data.image || "default.jpg"
+        image: data.image || "default.jpg",
+       team: null
         
     }
 ]
@@ -160,11 +160,11 @@ if (data.type === "set_team") {
 
     if (!exists) {
         room.players.push({
-            name: user,
-            lineage: data.lineage,
-            image: data.image || "default.jpg",
-            team: null
-        });
+    name: user,
+    lineage: data.lineage,
+    image: data.image || "default.jpg",
+    team: null
+});
     }
 
     broadcast();
