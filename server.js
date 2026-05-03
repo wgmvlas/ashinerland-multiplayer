@@ -119,13 +119,13 @@ if (data.type === "set_team") {
         status: "lobby",
         createdAt: Date.now(),
         players: [
-            {
-                name: user,
-                lineage: data.lineage,
-                image: data.image,
-               team: null
-            }
-        ]
+    {
+        name: user,
+        lineage: data.lineage,
+        image: data.image || "default.jpg",
+        team: null
+    }
+]
     };
 
     rooms.push(room);
@@ -151,7 +151,9 @@ if (data.type === "set_team") {
            const max = Number(room.maxPlayers || 0);
 if (room.players.length >= max) return;
 
-            const exists = room.players.find(p => p.name === user);
+            const exists = room.players.find(p =>
+    normalize(p.name) === user
+);
 
             if (!exists) {
                 room.players.push({
