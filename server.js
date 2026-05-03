@@ -64,35 +64,7 @@ wss.on("connection", (ws) => {
         } catch {
             return;
         }
-        /* =========================
-           SET TEAM
-        ========================= */
-if (data.type === "set_team") {
-    const room = findRoom(data.roomId);
-    if (!room) return;
 
-    const actor = normalize(data.user);     // хто натиснув
-    const target = normalize(data.target);   // кого змінюємо
-
-    const actorPlayer = room.players.find(p =>
-        normalize(p.name) === actor
-    );
-
-    if (!actorPlayer) return;
-
-    const targetPlayer = room.players.find(p =>
-        normalize(p.name) === target
-    );
-
-    if (!targetPlayer) return;
-
-    // 🔥 дозволяємо змінювати ТІЛЬКИ СВОЮ команду
-    if (actor !== target) return;
-
-    targetPlayer.team = data.team;
-
-    broadcast();
-}
         /* =========================
            GET ROOMS
         ========================= */
@@ -106,7 +78,7 @@ if (data.type === "set_team") {
         /* =========================
            CREATE ROOM
         ========================= */
-      if (data.type === "create_room") {
+        if (data.type === "create_room") {
 
     const user = normalize(data.user);
 
@@ -115,19 +87,21 @@ if (data.type === "set_team") {
         host: user,
         map: data.map,
         points: data.points,
-        maxPlayers,
+        maxPlayers: Number(data.players),
         status: "lobby",
         createdAt: Date.now(),
-        players: [{
-            name: user,
-            lineage: data.lineage,
-            image: data.image || "default.jpg",
-            team: null
-        }]
+        players: [
+            {
+                name: user,
+                lineage: data.lineage,
+                image: data.image
+            }
+        ]
     };
 
     rooms.push(room);
 
+    // 🔥 ВАЖЛИВО: відправити кімнату назад тільки створювачу
     ws.send(JSON.stringify({
         type: "room_created",
         roomId: room.id
@@ -135,35 +109,31 @@ if (data.type === "set_team") {
 
     broadcast();
 }
+
         /* =========================
            JOIN ROOM
         ========================= */
-      if (data.type === "join_room") {
-    const room = findRoom(data.roomId);
-    if (!room) return;
+        if (data.type === "join_room") {
+            const room = findRoom(data.roomId);
+            if (!room) return;
 
-    const user = normalize(data.user);
+            const user = normalize(data.user);
 
-    const max = Number(room.maxPlayers);
-    if (!max) return;
+           const max = Number(room.maxPlayers || 0);
+if (room.players.length >= max) return;
 
-    if (room.players.length >= max) return;
+            const exists = room.players.find(p => p.name === user);
 
-    const exists = room.players.some(p =>
-        normalize(p.name) === user
-    );
+            if (!exists) {
+                room.players.push({
+                    name: user,
+                    lineage: data.lineage,
+                    image: data.image || "default.jpg"
+                });
+            }
 
-    if (!exists) {
-        room.players.push({
-    name: user,
-    lineage: data.lineage,
-    image: data.image || "default.jpg",
-    team: null
-});
-    }
-
-    broadcast();
-}
+            broadcast();
+        }
 
         /* =========================
            LEAVE ROOM
@@ -180,9 +150,7 @@ if (data.type === "set_team") {
                 return;
             }
 
-            room.players = room.players.filter(p =>
-    normalize(p.name) !== user
-);
+            room.players = room.players.filter(p => p.name !== user);
             broadcast();
         }
 
